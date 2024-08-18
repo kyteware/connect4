@@ -26,6 +26,7 @@ fn main() {
         println!("{:?}", hist);
         let num_loners = hist[&1];
         let num_reps =  hist.iter().map(|(x, y)| *x as u32 * y).sum::<u32>() - num_loners;
+        println!("{} positions considered, {} avoidable {}% possible savings", num_loners, num_reps, (num_reps as f64 / (num_loners as f64 + num_reps as f64)) * 100.);
         board = board.with_move(Color::Yellow, bot_mve);
     }
 }
