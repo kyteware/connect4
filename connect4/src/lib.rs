@@ -37,6 +37,47 @@ impl Position {
 
         moves
     }
+
+    pub fn stringify(&self) -> String {
+        let mut res = String::new();
+        for row in &self.grid {
+            for col in row.iter() {
+                res.push_str(match col {
+                    Slot::Empty => "(-)",
+                    Slot::Color(Color::Red) => "(R)",
+                    Slot::Color(Color::Yellow) => "(Y)"
+                })
+            }
+            res.push('\n');
+        }
+        res
+    }
+
+    pub fn hash(&self) -> u64 {
+        let mut res = 0;
+        for c in 0..7 {
+            let mut len = 0;
+            for r in (0..6).rev() {
+                match self.get(r, c) {
+                    Slot::Color(Color::Red) => {
+                        res <<= 1;
+                        res ^= 1;
+                    }
+                    Slot::Color(Color::Yellow) => {
+                        res <<= 1;
+                    }
+                    Slot::Empty => {
+                        break;
+                    }
+                }
+                len += 1;
+            }
+            res <<= 3 + 6 - len;
+            res ^= len;
+        }
+
+        res
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -65,5 +106,21 @@ impl Color {
             Color::Red => 1.,
             Color::Yellow => -1.
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{Color, Position};
+
+    #[test]
+    fn test_hashes() {
+        let mut board = Position::default();
+
+        assert_eq!(board.hash(), 0);
+        board = board.with_move(Color::Yellow, 0);
+        assert_eq!(board.hash(), 1 << 54);
+        board = board.with_move(Color::Red, 6);
+        assert_eq!(board.hash(), (1 << 54) ^ (1 << 8) ^ 1);
     }
 }
