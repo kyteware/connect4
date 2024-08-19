@@ -1,4 +1,4 @@
-use std::{collections::{BTreeMap, HashMap}, io::{stdin, stdout, Write}};
+use std::{collections::BTreeMap, io::{stdin, stdout, Write}};
 
 use connect4::{Color, Position, Slot};
 
@@ -14,7 +14,6 @@ fn main() {
         board = board.with_move(Color::Red, col);
         let mut dupes = BTreeMap::new();
         let bot_mve = minmax(&board, Color::Yellow, 6, &mut dupes).0;
-        println!("{:?} ", dupes.iter().take(100));
         let mut hist: BTreeMap<u64, u32> = BTreeMap::new();
         for cnt in dupes.values() {
             if let Some(count) = hist.get_mut(cnt) {
@@ -32,10 +31,10 @@ fn main() {
 }
 
 fn minmax(board: &Position, turn: Color, depth: u32, dupes: &mut BTreeMap<u64, u64>) -> (usize, f64) {
-    if let Some(count) = dupes.get_mut(&board.hash()) {
+    if let Some(count) = dupes.get_mut(&board.inner) {
         *count += 1;
     } else {
-        dupes.insert(board.hash(), 1);
+        dupes.insert(board.inner, 1);
     }
     let mut best = (69, std::f64::NEG_INFINITY * turn.favour_mod());
     for mve in board.allowed_moves() {
@@ -56,7 +55,6 @@ fn minmax(board: &Position, turn: Color, depth: u32, dupes: &mut BTreeMap<u64, u
             best = (mve, score);
         }
     }
-
     best
 }
 
