@@ -1,3 +1,3 @@
 [workspace]
-members = ["connect4", "minmax"]
+members = ["connect4", "minmax", "smart-minmax"]
 resolver = "2"

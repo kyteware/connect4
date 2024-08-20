@@ -1,6 +1,8 @@
+mod naive_score;
+
 /// 012345len
 /// c6,c5...c0
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Hash, PartialEq, PartialOrd, Eq, Ord)]
 pub struct Position {
     pub inner: u64
 }
