@@ -16,7 +16,7 @@ impl Position {
             if let NaiveScore::RedFavour(favour) = score {
                 total_favour += favour;
             } else {
-                
+                return score;
             }
         }
 
@@ -24,29 +24,61 @@ impl Position {
         for c in 0..7 {
             let mut scan = ScanState::default();
             for r in 0..6 {
-                if scan.eat(position.get(r, c)) {
+                if scan.eat(self.get(r, c)) {
                     break;
                 }
             }
-            let score = scan.score();
-            match score {
-                Score::Winner(Color::Red) => {
-                    return std::f64::INFINITY
-                },
-                Score::Winner(Color::Yellow) => {
-                    return std::f64::NEG_INFINITY
-                }
-                Score::Favour(favour) => {
-                    total_favour += favour;
-                },
+            let score = scan.naive_score();
+            if let NaiveScore::RedFavour(favour) = score {
+                total_favour += favour;
+            } else {
+                return score;
             }
         }
 
-        total_favour
+        // right-running-diag
+        let starts = (3isize..6).map(|r| (r, 0)).into_iter().chain((1isize..4).map(|c| (5, c)));
+        for mut pos in starts {
+            let mut scan = ScanState::default();
+            while pos.0 >= 0 && pos.1 <= 7 {
+                if scan.eat(self.get(pos.0 as usize, pos.1 as usize)) {
+                    break;
+                }
+                pos.0 -= 1;
+                pos.1 += 1;
+            }
+            let score = scan.naive_score();
+            if let NaiveScore::RedFavour(favour) = score {
+                total_favour += favour;
+            } else {
+                return score;
+            }
+        }
+
+        // left-running-diag
+        let starts = (3isize..6).map(|r| (r, 6)).into_iter().chain((3isize..6).map(|c| (5, c)));
+        for mut pos in starts {
+            let mut scan = ScanState::default();
+            while pos.0 >= 0 && pos.1 >= 0 {
+                if scan.eat(self.get(pos.0 as usize, pos.1 as usize)) {
+                    break;
+                }
+                pos.0 -= 1;
+                pos.1 -= 1;
+            }
+            let score = scan.naive_score();
+            if let NaiveScore::RedFavour(favour) = score {
+                total_favour += favour;
+            } else {
+                return score;
+            }
+        }
+
+        NaiveScore::RedFavour(total_favour)
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum NaiveScore {
     Winner(Color),
     RedFavour(f64)
@@ -96,9 +128,75 @@ impl ScanState {
 
     fn naive_score(&self) -> NaiveScore {
         if let Some(winner) = self.winner {
-            Score::Winner(winner)
+            NaiveScore::Winner(winner)
         } else {
-            Score::Favour(self.favour)
+            NaiveScore::RedFavour(self.favour)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{naive_score::NaiveScore, Position, Color::*};
+
+    #[test]
+    fn even() {
+        assert_eq!(Position::default().naive_score(), NaiveScore::RedFavour(0.));
+    }
+
+    #[test]
+    fn sideways_win() {
+        let pos = Position::default()
+            .with_move(Red, 3)
+            .with_move(Red, 4)
+            .with_move(Red, 5)
+            .with_move(Red, 6);
+
+        assert_eq!(pos.naive_score(), NaiveScore::Winner(Red));
+    }
+
+    #[test]
+    fn vert_win() {
+        let pos = Position::default()
+            .with_move(Yellow, 2)
+            .with_move(Yellow, 2)
+            .with_move(Yellow, 2)
+            .with_move(Yellow, 2);
+
+        assert_eq!(pos.naive_score(), NaiveScore::Winner(Yellow));
+    }
+
+    #[test]
+    fn right_diag_win() {
+        let pos = Position::default()
+            .with_move(Yellow, 2)
+            .with_move(Yellow, 2)
+            .with_move(Yellow, 2)
+            .with_move(Red, 2)
+            .with_move(Yellow, 3)
+            .with_move(Yellow, 3)
+            .with_move(Red, 3)
+            .with_move(Yellow, 4)
+            .with_move(Red, 4)
+            .with_move(Red, 5);
+
+        assert_eq!(pos.naive_score(), NaiveScore::Winner(Red));
+    }
+
+    #[test]
+    fn left_diag_win() {
+        let pos = Position::default()
+            .with_move(Yellow, 6)
+            .with_move(Yellow, 6)
+            .with_move(Yellow, 6)
+            .with_move(Red, 6)
+            .with_move(Yellow, 5)
+            .with_move(Yellow, 5)
+            .with_move(Red, 5)
+            .with_move(Yellow, 4)
+            .with_move(Red, 4)
+            .with_move(Red, 3);
+
+        assert_eq!(pos.naive_score(), NaiveScore::Winner(Red));
     }
 }
