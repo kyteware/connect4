@@ -39,7 +39,7 @@ fn minmax(board: &Position, turn: Color, depth: u32, dupes: &mut BTreeMap<u64, u
     let mut best = (69, std::f64::NEG_INFINITY * turn.favour_mod());
     for mve in board.allowed_moves() {
         let new_board = board.with_move(turn, mve);
-        let favour = red_favour(&new_board);
+        let favour = new_board.naive_score().as_f64();
         let score = if depth > 0 {
             if favour == std::f64::INFINITY * turn.favour_mod() {
                 return (mve, favour)

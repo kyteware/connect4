@@ -84,6 +84,15 @@ pub enum NaiveScore {
     RedFavour(f64)
 }
 
+impl NaiveScore {
+    pub fn as_f64(self) -> f64 {
+        match self {
+            NaiveScore::Winner(winner) => std::f64::INFINITY * winner.favour_mod(),
+            NaiveScore::RedFavour(favour) => favour,
+        }
+    }
+}
+
 #[derive(Default)]
 struct ScanState {
     pub winner: Option<Color>,
