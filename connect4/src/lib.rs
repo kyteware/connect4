@@ -1,5 +1,7 @@
 mod naive_score;
 
+use colored::Colorize;
+
 /// 012345len
 /// c6,c5...c0
 #[derive(Clone, Default, Hash, PartialEq, PartialOrd, Eq, Ord)]
@@ -61,13 +63,13 @@ impl Position {
         for r in (0..6).rev() {
             for c in 0..7 {
                 let slot = self.get(r, c);
-                res.push_str(match slot {
-                    Slot::Empty => "(-)",
-                    Slot::Color(Color::Red) => "(R)",
-                    Slot::Color(Color::Yellow) => "(Y)"
+                res.push_str(&match slot {
+                    Slot::Empty => "\x1b[1;30;44m ●\x1b[0m",
+                    Slot::Color(Color::Red) => "\x1b[1;31;44m ●\x1b[0m",
+                    Slot::Color(Color::Yellow) => "\x1b[1;33;44m ●\x1b[0m"
                 })
             }
-            res.push('\n');
+            res.push_str("\x1b[1;44m \x1b[0m\n");
         }
         res
     }
